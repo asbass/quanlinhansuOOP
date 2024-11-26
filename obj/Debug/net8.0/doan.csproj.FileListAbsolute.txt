@@ -1,0 +1,14 @@
+C:\tai\ute\oop\doan\bin\Debug\net8.0\doan.exe
+C:\tai\ute\oop\doan\bin\Debug\net8.0\doan.deps.json
+C:\tai\ute\oop\doan\bin\Debug\net8.0\doan.runtimeconfig.json
+C:\tai\ute\oop\doan\bin\Debug\net8.0\doan.dll
+C:\tai\ute\oop\doan\bin\Debug\net8.0\doan.pdb
+C:\tai\ute\oop\doan\obj\Debug\net8.0\doan.GeneratedMSBuildEditorConfig.editorconfig
+C:\tai\ute\oop\doan\obj\Debug\net8.0\doan.AssemblyInfoInputs.cache
+C:\tai\ute\oop\doan\obj\Debug\net8.0\doan.AssemblyInfo.cs
+C:\tai\ute\oop\doan\obj\Debug\net8.0\doan.csproj.CoreCompileInputs.cache
+C:\tai\ute\oop\doan\obj\Debug\net8.0\doan.dll
+C:\tai\ute\oop\doan\obj\Debug\net8.0\refint\doan.dll
+C:\tai\ute\oop\doan\obj\Debug\net8.0\doan.pdb
+C:\tai\ute\oop\doan\obj\Debug\net8.0\doan.genruntimeconfig.cache
+C:\tai\ute\oop\doan\obj\Debug\net8.0\ref\doan.dll
