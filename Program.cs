@@ -1,9 +1,18 @@
-﻿namespace DatabaseModels
+﻿using System.Text;
+
+namespace DatabaseModels
 {
     public class Department
     {
         public int DepartmentID { get; set; }
         public string DepartmentName { get; set; }
+        public int ParentDepartmentId { get; set; }
+        public int HeadId { get; set; }
+        public List<int> ListDeputyId { get; set; }
+        public List<Employee> Employees { get; set; } = new List<Employee>();
+
+        public Employee Head { get; set; }
+        public List<Employee> Deputies { get; set; } = new List<Employee>();
     }
 
     public class Position
@@ -25,10 +34,18 @@
         public DateTime DateOfBirth { get; set; }
         public int DepartmentID { get; set; }
         public int PositionID { get; set; }
+        public string Address { get; set; }
+        public string Email { get; set; }
+        public string Identifier { get; set; }
+        public string PhoneNumber { get; set; }
+        public double SalaryBase { get; set; }
 
         // Foreign Key Relationships
         public Department Department { get; set; }
         public Position Position { get; set; }
+
+        public List<Contract> Contracts { get; set; } = new List<Contract>();
+        public List<EmployeeLog> EmployeeLogs { get; set; } = new List<EmployeeLog>();
     }
 
     public class Contract
@@ -48,30 +65,37 @@
     {
         public int LogID { get; set; }
         public int EmployeeID { get; set; }
-        public DateTime LogDate { get; set; }
-        public string Description { get; set; }
-
-        // Foreign Key Relationships
+        public DateTime ChangeDate { get; set; }
+        public string Reason { get; set; }
+        public double NewSalary { get; set; }
+        public int ChangeBy { get; set; }
+        public Position Position { get; set; }
+        public Department Department { get; set; }
+        // Mối quan hệ với Employee
         public Employee Employee { get; set; }
+
+        // Mối quan hệ với người thay đổi
+        public Employee ChangedBy { get; set; }
     }
     public class Program
     {
         public static void Main()
         {
+            Console.OutputEncoding = Encoding.UTF8;
             // Dữ liệu mẫu cho các phòng ban
             var departments = new List<Department>
-        {
-            new Department { DepartmentID = 1, DepartmentName = "Sales" },
-            new Department { DepartmentID = 2, DepartmentName = "Marketing" },
-            new Department { DepartmentID = 3, DepartmentName = "Human Resources" },
-            new Department { DepartmentID = 4, DepartmentName = "Finance" },
-            new Department { DepartmentID = 5, DepartmentName = "IT" },
-            new Department { DepartmentID = 6, DepartmentName = "Operations" },
-            new Department { DepartmentID = 7, DepartmentName = "Research & Development" },
-            new Department { DepartmentID = 8, DepartmentName = "Customer Service" },
-            new Department { DepartmentID = 9, DepartmentName = "Legal" },
-            new Department { DepartmentID = 10, DepartmentName = "Product Management" }
-        };
+            {
+                new Department { DepartmentID = 1, DepartmentName = "Sales", ParentDepartmentId = 0 },
+                new Department { DepartmentID = 2, DepartmentName = "Marketing", ParentDepartmentId = 0 },
+                new Department { DepartmentID = 3, DepartmentName = "Human Resources", ParentDepartmentId = 0 },
+                new Department { DepartmentID = 4, DepartmentName = "Finance", ParentDepartmentId = 0 },
+                new Department { DepartmentID = 5, DepartmentName = "IT", ParentDepartmentId = 0 },
+                new Department { DepartmentID = 6, DepartmentName = "Operations", ParentDepartmentId = 0 },
+                new Department { DepartmentID = 7, DepartmentName = "Research & Development", ParentDepartmentId = 0 },
+                new Department { DepartmentID = 8, DepartmentName = "Customer Service", ParentDepartmentId = 0 },
+                new Department { DepartmentID = 9, DepartmentName = "Legal", ParentDepartmentId = 0 },
+                new Department { DepartmentID = 10, DepartmentName = "Product Management", ParentDepartmentId = 0 }
+            };
 
             // Dữ liệu mẫu cho các chức vụ
             var positions = new List<Position>
@@ -90,39 +114,78 @@
 
             var employees = new List<Employee>
         {
-            new Employee { EmployeeID = 1, FullName = "John Doe", DateOfBirth = new DateTime(1990, 5, 10), Position = positions[0], Department = departments[0] },
-            new Employee { EmployeeID = 2, FullName = "Jane Smith", DateOfBirth = new DateTime(1985, 3, 22), Position = positions[1], Department = departments[1] },
-            new Employee { EmployeeID = 3, FullName = "Michael Johnson", DateOfBirth = new DateTime(1982, 7, 18), Position = positions[2], Department = departments[2] },
-            new Employee { EmployeeID = 4, FullName = "Emily Davis", DateOfBirth = new DateTime(1993, 12, 15), Position = positions[3], Department = departments[3] },
-            new Employee { EmployeeID = 5, FullName = "David Brown", DateOfBirth = new DateTime(1991, 6, 5), Position = positions[4], Department = departments[4] },
-            new Employee { EmployeeID = 6, FullName = "Laura Wilson", DateOfBirth = new DateTime(1994, 11, 23), Position = positions[5], Department = departments[5] },
-            new Employee { EmployeeID = 7, FullName = "James Taylor", DateOfBirth = new DateTime(1988, 9, 14), Position = positions[6], Department = departments[6] },
-            new Employee { EmployeeID = 8, FullName = "Olivia Thomas", DateOfBirth = new DateTime(1998, 1, 30), Position = positions[7], Department = departments[7] },
-            new Employee { EmployeeID = 9, FullName = "Daniel Lee", DateOfBirth = new DateTime(1987, 4, 2), Position = positions[8], Department = departments[8] },
-            new Employee { EmployeeID = 10, FullName = "Sophia Martinez", DateOfBirth = new DateTime(1992, 8, 12), Position = positions[9], Department = departments[9] }
+            new Employee { EmployeeID = 1, FullName = "John Doe", DateOfBirth = new DateTime(1985, 5, 15), DepartmentID = 1, PositionID = 1, Address = "123 Main St", Email = "john.doe@example.com", Identifier = "ID001", PhoneNumber = "1234567890", SalaryBase = 5000 },
+            new Employee { EmployeeID = 2, FullName = "Jane Smith", DateOfBirth = new DateTime(1990, 8, 20), DepartmentID = 2, PositionID = 2, Address = "456 Elm St", Email = "jane.smith@example.com", Identifier = "ID002", PhoneNumber = "0987654321", SalaryBase = 4500 },
+            new Employee { EmployeeID = 3, FullName = "Robert Brown", DateOfBirth = new DateTime(1992, 3, 12), DepartmentID = 3, PositionID = 3, Address = "789 Oak St", Email = "robert.brown@example.com", Identifier = "ID003", PhoneNumber = "1122334455", SalaryBase = 4000 },
+            new Employee { EmployeeID = 4, FullName = "Emily Davis", DateOfBirth = new DateTime(1988, 11, 5), DepartmentID = 4, PositionID = 4, Address = "321 Pine St", Email = "emily.davis@example.com", Identifier = "ID004", PhoneNumber = "6677889900", SalaryBase = 6000 },
+            new Employee { EmployeeID = 5, FullName = "Michael Johnson", DateOfBirth = new DateTime(1985, 4, 10), DepartmentID = 5, PositionID = 5, Address = "654 Cedar St", Email = "michael.johnson@example.com", Identifier = "ID005", PhoneNumber = "4455667788", SalaryBase = 7000 },
+            new Employee { EmployeeID = 6, FullName = "Sarah Wilson", DateOfBirth = new DateTime(1994, 9, 22), DepartmentID = 6, PositionID = 6, Address = "987 Birch St", Email = "sarah.wilson@example.com", Identifier = "ID006", PhoneNumber = "2233445566", SalaryBase = 4700 },
+            new Employee { EmployeeID = 7, FullName = "Daniel Martinez", DateOfBirth = new DateTime(1983, 7, 18), DepartmentID = 7, PositionID = 7, Address = "432 Maple St", Email = "daniel.martinez@example.com", Identifier = "ID007", PhoneNumber = "5566778899", SalaryBase = 5300 },
+            new Employee { EmployeeID = 8, FullName = "Laura Clark", DateOfBirth = new DateTime(1991, 1, 25), DepartmentID = 8, PositionID = 8, Address = "654 Spruce St", Email = "laura.clark@example.com", Identifier = "ID008", PhoneNumber = "6677889900", SalaryBase = 4900 },
+            new Employee { EmployeeID = 9, FullName = "David Lopez", DateOfBirth = new DateTime(1987, 6, 30), DepartmentID = 9, PositionID = 9, Address = "123 Cherry St", Email = "david.lopez@example.com", Identifier = "ID009", PhoneNumber = "7788990011", SalaryBase = 5100 },
+            new Employee { EmployeeID = 10, FullName = "Sophia Hernandez", DateOfBirth = new DateTime(1989, 2, 14), DepartmentID = 10, PositionID = 10, Address = "456 Walnut St", Email = "sophia.hernandez@example.com", Identifier = "ID010", PhoneNumber = "8899001122", SalaryBase = 5200 }
         };
+
+            var random = new Random();
+
+            foreach (var department in departments)
+            {
+                // Lấy nhân viên từ danh sách employees theo DepartmentID
+                department.Employees = employees.Where(e => e.DepartmentID == department.DepartmentID).ToList();
+
+                // Random quyết định có Head và Deputies hay không
+                bool hasHeadAndDeputies = random.Next(0, 2) == 1; // 50% cơ hội có Head và Deputies
+
+                if (hasHeadAndDeputies && department.Employees.Count > 0)
+                {
+                    // Cập nhật HeadId (lấy ngẫu nhiên một nhân viên làm trưởng phòng)
+                    department.HeadId = department.Employees[random.Next(department.Employees.Count)].EmployeeID;
+
+                    // Cập nhật ListDeputyId (lấy tối đa 2 nhân viên khác ngẫu nhiên làm phó phòng)
+                    department.ListDeputyId = department.Employees
+                        .Where(e => e.EmployeeID != department.HeadId)
+                        .OrderBy(_ => random.Next())
+                        .Take(2)
+                        .Select(e => e.EmployeeID)
+                        .ToList();
+
+                    // Cập nhật Head và Deputies
+                    department.Head = employees.FirstOrDefault(e => e.EmployeeID == department.HeadId);
+                    department.Deputies = employees.Where(e => department.ListDeputyId.Contains(e.EmployeeID)).ToList();
+                }
+                else
+                {
+                    // Không có Head và Deputies
+                    department.HeadId = 0;
+                    department.ListDeputyId = new List<int>();
+                    department.Head = null;
+                    department.Deputies = new List<Employee>();
+                }
+            }
 
             // Dữ liệu mẫu cho các loại hợp đồng
             var contractTypes = new List<ContractType>
         {
-            new ContractType { ContractTypeID = 1, TypeName = "Full-time" },
-            new ContractType { ContractTypeID = 2, TypeName = "Part-time" },
-            new ContractType { ContractTypeID = 3, TypeName = "Freelance" }
+            new ContractType { ContractTypeID = 1, TypeName = "Full-Time" },
+            new ContractType { ContractTypeID = 2, TypeName = "Part-Time" },
+            new ContractType { ContractTypeID = 3, TypeName = "Internship" },
+            new ContractType { ContractTypeID = 4, TypeName = "Freelance" },
+            new ContractType { ContractTypeID = 5, TypeName = "Temporary" },
         };
 
             // Dữ liệu mẫu cho các hợp đồng của nhân viên
             var contracts = new List<Contract>
         {
-            new Contract { ContractID = 1, EmployeeID = 1, ContractTypeID = 1, StartDate = new DateTime(2023, 1, 1), EndDate = new DateTime(2025, 1, 1), Employee = employees[0], ContractType = contractTypes[0] },
-            new Contract { ContractID = 2, EmployeeID = 2, ContractTypeID = 2, StartDate = new DateTime(2023, 6, 1), EndDate = new DateTime(2023, 6, 1), Employee = employees[1], ContractType = contractTypes[1] },
-            new Contract { ContractID = 3, EmployeeID = 3, ContractTypeID = 1, StartDate = new DateTime(2023, 3, 1), EndDate = new DateTime(2025, 3, 1), Employee = employees[2], ContractType = contractTypes[0] },
-            new Contract { ContractID = 4, EmployeeID = 4, ContractTypeID = 3, StartDate = new DateTime(2023, 5, 1), EndDate = new DateTime(2024, 5, 1), Employee = employees[3], ContractType = contractTypes[2] },
-            new Contract { ContractID = 5, EmployeeID = 5, ContractTypeID = 2, StartDate = new DateTime(2023, 7, 1), EndDate = new DateTime(2024, 12, 1), Employee = employees[4], ContractType = contractTypes[1] },
-            new Contract { ContractID = 6, EmployeeID = 6, ContractTypeID = 1, StartDate = new DateTime(2023, 2, 1), EndDate = new DateTime(2025, 2, 1), Employee = employees[5], ContractType = contractTypes[0] },
-            new Contract { ContractID = 7, EmployeeID = 7, ContractTypeID = 3, StartDate = new DateTime(2023, 8, 1), EndDate = new DateTime(2024, 8, 1), Employee = employees[6], ContractType = contractTypes[2] },
-            new Contract { ContractID = 8, EmployeeID = 8, ContractTypeID = 1, StartDate = new DateTime(2023, 4, 1), EndDate = new DateTime(2025, 4, 1), Employee = employees[7], ContractType = contractTypes[0] },
-            new Contract { ContractID = 9, EmployeeID = 9, ContractTypeID = 2, StartDate = new DateTime(2023, 9, 1), EndDate = new DateTime(2024, 9, 1), Employee = employees[8], ContractType = contractTypes[1] },
-            new Contract { ContractID = 10, EmployeeID = 10, ContractTypeID = 3, StartDate = new DateTime(2023, 10, 1), EndDate = new DateTime(2024, 10, 1), Employee = employees[9], ContractType = contractTypes[2] }
+            new Contract { ContractID = 1, EmployeeID = 1, ContractTypeID = 1, StartDate = new DateTime(2020, 1, 1), EndDate = new DateTime(2025, 1, 1) },
+            new Contract { ContractID = 2, EmployeeID = 2, ContractTypeID = 2, StartDate = new DateTime(2021, 6, 1), EndDate = new DateTime(2023, 6, 1) },
+            new Contract { ContractID = 3, EmployeeID = 3, ContractTypeID = 3, StartDate = new DateTime(2022, 1, 15), EndDate = new DateTime(2023, 1, 15) },
+            new Contract { ContractID = 4, EmployeeID = 4, ContractTypeID = 4, StartDate = new DateTime(2019, 3, 1), EndDate = new DateTime(2024, 3, 1) },
+            new Contract { ContractID = 5, EmployeeID = 5, ContractTypeID = 5, StartDate = new DateTime(2023, 7, 1), EndDate = new DateTime(2024, 7, 1) },
+            new Contract { ContractID = 6, EmployeeID = 6, ContractTypeID = 1, StartDate = new DateTime(2020, 9, 1), EndDate = new DateTime(2025, 9, 1) },
+            new Contract { ContractID = 7, EmployeeID = 7, ContractTypeID = 2, StartDate = new DateTime(2021, 5, 1), EndDate = new DateTime(2023, 5, 1) },
+            new Contract { ContractID = 8, EmployeeID = 8, ContractTypeID = 3, StartDate = new DateTime(2022, 10, 1), EndDate = new DateTime(2023, 10, 1) },
+            new Contract { ContractID = 9, EmployeeID = 9, ContractTypeID = 4, StartDate = new DateTime(2018, 11, 1), EndDate = new DateTime(2023, 11, 1) },
+            new Contract { ContractID = 10, EmployeeID = 10, ContractTypeID = 5, StartDate = new DateTime(2023, 8, 1), EndDate = new DateTime(2024, 8, 1) }
         };
 
             // Dữ liệu mẫu cho các nhật ký nhân viên
