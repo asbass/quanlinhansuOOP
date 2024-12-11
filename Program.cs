@@ -330,19 +330,19 @@ namespace DatabaseModels
 
             // Linking Data
             foreach (var department in departments)
-                {
-                    department.Employees = employees.Where(e => e.DepartmentID == department.DepartmentID).ToList();
-                    department.Head = employees.FirstOrDefault(e => e.EmployeeID == department.HeadId);
-                    department.Deputies = employees.Where(e => department.ListDeputyId.Contains(e.EmployeeID)).ToList();
-                }
+            {
+                department.Employees = employees.Where(e => e.DepartmentID == department.DepartmentID).ToList();
+                department.Head = employees.FirstOrDefault(e => e.EmployeeID == department.HeadId);
+                department.Deputies = employees.Where(e => department.ListDeputyId.Contains(e.EmployeeID)).ToList();
+            }
 
-                foreach (var employee in employees)
-                {
-                    employee.Department = departments.FirstOrDefault(d => d.DepartmentID == employee.DepartmentID);
-                    employee.Position = positions.FirstOrDefault(p => p.PositionID == employee.PositionID);
-                    employee.Contracts = contracts.Where(c => c.EmployeeID == employee.EmployeeID).ToList();
-                    employee.EmployeeLogs = employeeLogs.Where(el => el.EmployeeID == employee.EmployeeID).ToList();
-                }
+            foreach (var employee in employees)
+            {
+                employee.Department = departments.FirstOrDefault(d => d.DepartmentID == employee.DepartmentID);
+                employee.Position = positions.FirstOrDefault(p => p.PositionID == employee.PositionID);
+                employee.Contracts = contracts.Where(c => c.EmployeeID == employee.EmployeeID).ToList();
+                employee.EmployeeLogs = employeeLogs.Where(el => el.EmployeeID == employee.EmployeeID).ToList();
+            }
             // 1. Lấy danh sách tất cả các nhân viên trong phòng ban IT
             var employeesInIT = employees.Where(e => e.Department.DepartmentName == "IT").ToList();
             Console.WriteLine("1 Danh sách nhân viên trong phòng ban IT:");
@@ -563,7 +563,251 @@ namespace DatabaseModels
             {
                 var (years, days) = convertToYearsAndDays(employee.TotalDaysWorked);
                 Console.WriteLine($"Mã Nhân Viên: {employee.EmployeeID}, Họ Tên: {employee.FullName}, Ngày Bắt Đầu: {employee.StartDate}, Thời Gian Làm Việc: {years} năm {days} ngày");
+
+                //21. liệt kê các trưởng phòng và phó phòng của các phòng ban
+                Console.WriteLine("Liệt kê các trưởng phòng và phó phòng của các phòng ban");
+                var departmentHeadsAndDeputies = departments
+                    .Select(d => new
+                    {
+                        DepartmentName = d.DepartmentName,
+                        Head = employees.FirstOrDefault(e => e.EmployeeID == d.HeadId)?.FullName ?? "Chưa có trưởng phòng",
+                        Deputies = employees.Where(e => d.ListDeputyId.Contains(e.EmployeeID))
+                                            .Select(e => e.FullName)
+                                            .ToList()
+                    })
+                    .ToList();
+
+                foreach (var dept in departmentHeadsAndDeputies)
+                {
+                    Console.WriteLine($"Phòng ban: {dept.DepartmentName}");
+                    Console.WriteLine($"  Trưởng phòng: {dept.Head}");
+                    Console.WriteLine($"  Phó phòng: {string.Join(", ", dept.Deputies)}");
+                }
+                //22. Liết kê phòng ban có nhiều hơn 1 phó phòng
+                Console.WriteLine(" Liết kê phòng ban có nhiều hơn 1 phó phòng");
+                var departmentsWithMultipleDeputies = departments
+                .Where(d => d.ListDeputyId.Count > 1) // Lọc các phòng ban có hơn 1 phó phòng
+                .Select(d => new
+                {
+                    DepartmentName = d.DepartmentName,
+                    DeputyCount = d.ListDeputyId.Count,
+                    Deputies = employees.Where(e => d.ListDeputyId.Contains(e.EmployeeID))
+                                        .Select(e => e.FullName)
+                                        .ToList()
+                })
+                .ToList();
+
+                foreach (var dept in departmentsWithMultipleDeputies)
+                {
+                    Console.WriteLine($"Phòng ban: {dept.DepartmentName}");
+                    Console.WriteLine($"  Số lượng phó phòng: {dept.DeputyCount}");
+                    Console.WriteLine($"  Danh sách phó phòng: {string.Join(", ", dept.Deputies)}");
+                }
+                //23. Liệt kê tất cả các phòng ban có phòng ban con
+                Console.WriteLine("Liệt kê tất cả các phòng ban có phòng ban con");
+                List<Department> GetAllSubDepartments(List<Department> departments, int parentId)
+                {
+                    var result = new List<Department>();
+                    var subDepartments = departments.Where(d => d.ParentDepartmentId == parentId).ToList();
+
+                    foreach (var subDept in subDepartments)
+                    {
+                        result.Add(subDept);
+                        result.AddRange(GetAllSubDepartments(departments, subDept.DepartmentID)); // Đệ quy tìm cấp con
+                    }
+
+                    return result;
+                }
+
+                // Truy vấn tất cả các phòng ban có cấp con
+                var departmentsWithSubDepartments = departments
+                    .Where(parent => departments.Any(child => child.ParentDepartmentId == parent.DepartmentID))
+                    .Select(parent => new
+                    {
+                        DepartmentName = parent.DepartmentName,
+                        SubDepartments = GetAllSubDepartments(departments, parent.DepartmentID)
+                    })
+
+                    .ToList();
+
+                foreach (var dept in departmentsWithSubDepartments)
+                {
+                    Console.WriteLine($"Phòng ban: {dept.DepartmentName}");
+                    Console.WriteLine($"  Phòng ban con: {string.Join(", ", dept.SubDepartments.Select(sub => sub.DepartmentName))}");
+                }
+                //24 Tìm lịch sử thay đổi của 1 nhân viên theo tên
+                string employeeName = "John Smith"; // Tên nhân viên cần tìm
+
+                Console.WriteLine("Tìm lịch sử thay đổi của 1 nhân viên theo tên");
+                var employeeHistory = employeeLogs
+                    .Where(log => employees.Any(emp => emp.EmployeeID == log.EmployeeID && emp.FullName == employeeName))
+                    .Select(log => new
+                    {
+                        log.LogID,
+                        log.EmployeeID,
+                        log.ChangeDate,
+                        log.Reason,
+                        log.NewSalary,
+                        log.ChangeBy,
+                        PositionName = log.Position.PositionName, // Giả sử thuộc tính PositionName tồn tại
+                        DepartmentName = log.Department.DepartmentName // Giả sử thuộc tính DepartmentName tồn tại
+                    })
+                    .ToList();
+                foreach (var log in employeeHistory)
+                {
+                    Console.WriteLine($"LogID: {log.LogID}");
+                    Console.WriteLine($"EmployeeID: {log.EmployeeID}");
+                    Console.WriteLine($"ChangeDate: {log.ChangeDate}");
+                    Console.WriteLine($"Reason: {log.Reason}");
+                    Console.WriteLine($"NewSalary: {log.NewSalary}");
+                    Console.WriteLine($"ChangeBy: {log.ChangeBy}");
+                    Console.WriteLine($"Position: {log.PositionName}");
+                    Console.WriteLine($"Department: {log.DepartmentName}");
+                    Console.WriteLine("------------------------------");
+                }
+                //25 Đếm số lượng nhân viên của mỗi phòng ban
+                Console.WriteLine("Đếm số lượng nhân viên của mỗi phòng ban");
+
+                var departmentEmployeeCount = from d in departments
+                                              join e in employees on d.DepartmentID equals e.DepartmentID into deptEmployees
+                                              select new
+                                              {
+                                                  DepartmentName = d.DepartmentName,
+                                                  EmployeeCount = deptEmployees.Count()
+                                              };
+
+                // In kết quả
+                foreach (var item in departmentEmployeeCount)
+                {
+                    Console.WriteLine($"Phòng ban: {item.DepartmentName}, Số lượng nhân viên: {item.EmployeeCount}");
+                }
+                //26 Phòng ban có nhiều nhân viên nhất
+                Console.WriteLine("Phòng ban có nhiều nhân viên nhất");
+                var departmentWithMostEmployees = employees
+                .GroupBy(e => e.DepartmentID)
+                .Select(g => new
+                {
+                    DepartmentID = g.Key,
+                    EmployeeCount = g.Count()
+                })
+                .Join(departments,
+                      empGroup => empGroup.DepartmentID,
+                      dept => dept.DepartmentID,
+                      (empGroup, dept) => new
+                      {
+                          DepartmentName = dept.DepartmentName,
+                          EmployeeCount = empGroup.EmployeeCount
+                      })
+                .OrderByDescending(result => result.EmployeeCount)
+                .FirstOrDefault();
+
+                Console.WriteLine($"Phòng ban có nhiếu nhân viên nhất: {departmentWithMostEmployees.DepartmentName}");
+                Console.WriteLine($"Số nhân viên: {departmentWithMostEmployees.EmployeeCount}");
+
+                //27 Phòng ban có nhiều nhân viên nhất
+                Console.WriteLine("Phòng ban có nhiều nhân viên nhất");
+                var departmentWithLeastEmployees = employees
+                .GroupBy(e => e.DepartmentID)
+                .Select(g => new
+                {
+                    DepartmentID = g.Key,
+                    EmployeeCount = g.Count()
+                })
+                .Join(departments,
+                      empGroup => empGroup.DepartmentID,
+                      dept => dept.DepartmentID,
+                      (empGroup, dept) => new
+                      {
+                          DepartmentName = dept.DepartmentName,
+                          EmployeeCount = empGroup.EmployeeCount
+                      })
+                .OrderBy(result => result.EmployeeCount)
+                .FirstOrDefault();
+
+                Console.WriteLine($"Phòng ban có ít nhân viên nhất: {departmentWithLeastEmployees.DepartmentName}");
+                Console.WriteLine($"Số nhân viên: {departmentWithLeastEmployees.EmployeeCount}");
+
+                //28 Xáp xếp phòng ban theo số lượng nhân viên từ thấp đến cao
+                Console.WriteLine("Xáp xếp phòng ban theo số lượng nhân viên từ cao đến thấp");
+                var departmentsSortedByEmployeeCount = employees
+                .GroupBy(e => e.DepartmentID)
+                .Select(g => new
+                {
+                    DepartmentID = g.Key,
+                    EmployeeCount = g.Count()
+                })
+                .Join(departments,
+                      empGroup => empGroup.DepartmentID,
+                      dept => dept.DepartmentID,
+                      (empGroup, dept) => new
+                      {
+                          DepartmentName = dept.DepartmentName,
+                          EmployeeCount = empGroup.EmployeeCount
+                      })
+                .OrderByDescending(result => result.EmployeeCount) // Sắp xếp theo số lượng nhân viên tăng dần
+                .ToList();
+
+                foreach (var department in departmentsSortedByEmployeeCount)
+                {
+                    Console.WriteLine($"Department: {department.DepartmentName}, Employees: {department.EmployeeCount}");
+                }
+
+                //29 Liệt kê trưởng phòng, phó phòng, nhân viên của phòng ban theo tên phòng ban
+                Console.WriteLine("Liệt kê trưởng phòng, phó phòng, nhân viên của phòng ban theo tên phòng ban");
+                string departmentName = "IT"; // Tên phòng ban cần truy vấn
+
+                var result = departments
+                .Where(dept => dept.DepartmentName == departmentName)
+                .SelectMany(dept =>
+                    employees
+                        .Where(emp =>
+                            emp.DepartmentID == dept.DepartmentID // Nhân viên trong phòng ban
+                            || emp.EmployeeID == dept.HeadId      // Trưởng phòng
+                            || dept.ListDeputyId.Contains(emp.EmployeeID)) // Phó phòng
+                        .Select(emp => new
+                        {
+                            emp.FullName,
+                            emp.EmployeeID,
+                            emp.DepartmentID,
+                            Role = emp.EmployeeID == dept.HeadId
+                                ? "Trưởng phòng"
+                                : dept.ListDeputyId.Contains(emp.EmployeeID)
+                                    ? "Phó phòng"
+                                    : "Nhân viên"
+                        })
+                )
+                .ToList();
+
+                foreach (var item in result)
+                {
+                    Console.WriteLine($"Name: {item.FullName}, EmployeeID: {item.EmployeeID}, DepartmentID: {item.DepartmentID}, Role: {item.Role}");
+                }
+                //30 Phòng ban có nhiều phó phòng nhất trả về kèm tên nhân viên
+                Console.WriteLine("Phòng ban có nhiều phó phòng nhất trả về kèm tên nhân viên");
+                var departmentsWithMostDeputy = departments
+                .Where(d => d.ListDeputyId.Count == departments
+                    .Max(dept => dept.ListDeputyId.Count))
+                .Select(d => new
+                {
+                    DepartmentName = d.DepartmentName,
+                    Deputies = d.ListDeputyId.Select(deputyId => employees
+                        .FirstOrDefault(e => e.EmployeeID == deputyId)?.FullName)
+                        .ToList()
+                })
+                .ToList();
+
+                // In kết quả
+                foreach (var department in departmentsWithMostDeputy)
+                {
+                    Console.WriteLine($"Department: {department.DepartmentName}");
+                    Console.WriteLine("Deputies:");
+                    foreach (var deputy in department.Deputies)
+                    {
+                        Console.WriteLine($"- {deputy}");
+                    }
+                    Console.WriteLine();
+                }
             }
-        }
+        } 
     }
 }
