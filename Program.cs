@@ -171,10 +171,22 @@ namespace DatabaseModels
 
                 // Department 7 (e.g., Customer Service)
                 new Employee { EmployeeID = 115, FullName = "Kevin Parker", DateOfBirth = new DateTime(1986, 1, 8), DepartmentID = 7, PositionID = 15, Address = "555 Palm Dr", Email = "kevin.parker@example.com", Identifier = "ID115", PhoneNumber = "345-789-2345", SalaryBase = 50000 },
-                new Employee { EmployeeID = 116, FullName = "Olivia Scott", DateOfBirth = new DateTime(1990, 6, 14), DepartmentID = 7, PositionID = 16, Address = "666 Rose St", Email = "olivia.scott@example.com", Identifier = "ID116", PhoneNumber = "123-890-9876", SalaryBase = 51000 }
+                new Employee { EmployeeID = 116, FullName = "Olivia Scott", DateOfBirth = new DateTime(1990, 6, 14), DepartmentID = 7, PositionID = 16, Address = "666 Rose St", Email = "olivia.scott@example.com", Identifier = "ID116", PhoneNumber = "123-890-9876", SalaryBase = 51000 },
                         //new Employee { EmployeeID = 123, FullName = "Ethan Foster", DateOfBirth = new DateTime(1985, 11, 8), DepartmentID = 11, PositionID = 1, Address = "333 Spring Rd", Email = "ethan.foster@example.com", Identifier = "ID123", PhoneNumber = "567-890-1234", SalaryBase = 56000 },
             //new Employee { EmployeeID = 124, FullName = "Victoria Hughes", DateOfBirth = new DateTime(1993, 7, 18), DepartmentID = 11, PositionID = 2, Address = "444 Summer Ln", Email = "victoria.hughes@example.com", Identifier = "ID124", PhoneNumber = "678-901-2345", SalaryBase = 47000 },
             //new Employee { EmployeeID = 125, FullName = "Daniel Turner", DateOfBirth = new DateTime(1992, 9, 14), DepartmentID = 12, PositionID = 3, Address = "555 Winter Dr", Email = "daniel.turner@example.com", Identifier = "ID125", PhoneNumber = "789-012-3456", SalaryBase = 45000 }
+        new Employee
+            {
+                EmployeeID = 123,
+                FullName = "Ethan Foster",
+                DateOfBirth = new DateTime(1990, 11, 15),
+                DepartmentID = 8, // Customer Support
+                PositionID = 11, // Customer Support
+                Address = "333 Customer Ave",
+                Email = "ethan.foster@example.com",
+                PhoneNumber = "987-654-3210",
+                SalaryBase = 45000
+            }
         };
 
             var contracts = new List<Contract>
@@ -198,8 +210,24 @@ namespace DatabaseModels
                 new Contract { ContractID = 17, EmployeeID = 118, ContractTypeID = 3, StartDate = new DateTime(2023, 6, 10), EndDate = new DateTime(2026, 6, 10) },
                 new Contract { ContractID = 18, EmployeeID = 119, ContractTypeID = 2, StartDate = new DateTime(2021, 4, 15), EndDate = new DateTime(2024, 4, 15) },
                 new Contract { ContractID = 19, EmployeeID = 120, ContractTypeID = 1, StartDate = new DateTime(2018, 12, 5), EndDate = new DateTime(2023, 12, 5) },
-                new Contract { ContractID = 20, EmployeeID = 121, ContractTypeID = 3, StartDate = new DateTime(2024, 2, 1), EndDate = new DateTime(2027, 2, 1) }
+                new Contract { ContractID = 20, EmployeeID = 121, ContractTypeID = 3, StartDate = new DateTime(2024, 2, 1), EndDate = new DateTime(2027, 2, 1) },
 
+                new Contract
+                {
+                    ContractID = 21,
+                    EmployeeID = 102, // Jane Doe
+                    ContractTypeID = 1, // Full-Time
+                    StartDate = new DateTime(2023, 1, 1),
+                    EndDate = new DateTime(2025, 1, 1)
+                },
+                new Contract
+                {
+                    ContractID = 22,
+                    EmployeeID = 102, // Jane Doe
+                    ContractTypeID = 3, // Contractor
+                    StartDate = new DateTime(2024, 1, 1),
+                    EndDate = new DateTime(2024, 12, 31)
+                }
             };
 
             // Sample Data for EmployeeLogs
@@ -325,7 +353,30 @@ namespace DatabaseModels
                 ChangeBy = 111,
                 Position = positions.First(p => p.PositionID == 5),
                 Department = departments.First(d => d.DepartmentID == 6)
-            }
+            },
+            new EmployeeLog
+            {
+                LogID = 12,
+                EmployeeID = 101, // John Smith
+                ChangeDate = new DateTime(2021, 5, 1),
+                Reason = "Promoted to Manager",
+                NewSalary = 60000,
+                ChangeBy = 104, // Mark Lee
+                Position = positions.First(p => p.PositionID == 1), // Manager
+                Department = departments.First(d => d.DepartmentID == 1) // HR
+            },
+            new EmployeeLog
+            {
+                LogID = 13,
+                EmployeeID = 101, // John Smith
+                ChangeDate = new DateTime(2023, 3, 1),
+                Reason = "Moved to IT as Team Leader",
+                NewSalary = 65000,
+                ChangeBy = 104, // Mark Lee
+                Position = positions.First(p => p.PositionID == 2), // Team Leader
+                Department = departments.First(d => d.DepartmentID == 2) // IT
+            },
+
         };
 
             // Linking Data
@@ -563,9 +614,47 @@ namespace DatabaseModels
             {
                 var (years, days) = convertToYearsAndDays(employee.TotalDaysWorked);
                 Console.WriteLine($"Mã Nhân Viên: {employee.EmployeeID}, Họ Tên: {employee.FullName}, Ngày Bắt Đầu: {employee.StartDate}, Thời Gian Làm Việc: {years} năm {days} ngày");
+            }
+            // 18. Liệt kê các nhân viên có hợp đồng dài nhất
+            var employeesWithLongestContracts = employees
+                .Select(e => new
+                {
+                    e.FullName,
+                    LongestContract = e.Contracts.OrderByDescending(c => (c.EndDate - c.StartDate).TotalDays).FirstOrDefault()
+                })
+                .Where(e => e.LongestContract != null)
+                .ToList();
+            Console.WriteLine("\n18. Nhân viên có hợp đồng dài nhất:");
+            employeesWithLongestContracts.ForEach(e => Console.WriteLine($"- {e.FullName}, Hợp đồng ID: {e.LongestContract.ContractID}, Thời gian: {(e.LongestContract.EndDate - e.LongestContract.StartDate).TotalDays} ngày"));
 
-                //21. liệt kê các trưởng phòng và phó phòng của các phòng ban
-                Console.WriteLine("Liệt kê các trưởng phòng và phó phòng của các phòng ban");
+            // 19. Nhân viên lớn tuổi nhất theo từng phòng ban
+            var oldestEmployeeByDept = departments
+                .Select(d => new
+                {
+                    d.DepartmentName,
+                    OldestEmployee = d.Employees.OrderBy(e => e.DateOfBirth).FirstOrDefault()
+                })
+                .Where(d => d.OldestEmployee != null)
+                .ToList();
+            Console.WriteLine("\n19. Nhân viên lớn tuổi nhất theo từng phòng ban:");
+            oldestEmployeeByDept.ForEach(d =>
+            {
+                Console.WriteLine($"- {d.DepartmentName}: {d.OldestEmployee.FullName}, Ngày sinh: {d.OldestEmployee.DateOfBirth.ToShortDateString()}");
+            });
+
+            // 20. Tính tổng lương cơ bản của tất cả các phòng ban
+            var totalSalaryByDept = departments
+                .Select(d => new
+                {
+                    d.DepartmentName,
+                    TotalSalary = d.Employees.Sum(e => e.SalaryBase)
+                })
+                .ToList();
+            Console.WriteLine("\n20. Tổng lương cơ bản của tất cả các phòng ban:");
+            totalSalaryByDept.ForEach(d => Console.WriteLine($"- {d.DepartmentName}: {d.TotalSalary}"));
+
+            //21. liệt kê các trưởng phòng và phó phòng của các phòng ban
+            Console.WriteLine("Liệt kê các trưởng phòng và phó phòng của các phòng ban");
                 var departmentHeadsAndDeputies = departments
                     .Select(d => new
                     {
@@ -807,7 +896,323 @@ namespace DatabaseModels
                     }
                     Console.WriteLine();
                 }
-            }
-        } 
+                // 31. Nhân viên có hợp đồng hết hạn sớm nhất
+                var contractEndingSoonest = contracts
+                    .OrderBy(c => c.EndDate)
+                    .FirstOrDefault();
+                Console.WriteLine("\n31. Nhân viên có hợp đồng hết hạn sớm nhất:");
+                if (contractEndingSoonest != null)
+                {
+                    var employea = employees.FirstOrDefault(e => e.EmployeeID == contractEndingSoonest.EmployeeID);
+                    Console.WriteLine($"- {employea?.FullName}, Hợp đồng ID: {contractEndingSoonest.ContractID}, Ngày kết thúc: {contractEndingSoonest.EndDate}");
+                }
+
+                // 32. Danh sách các phòng ban và số nhân viên có lương trên 50.000
+                var departmentHighSalaryCount = departments
+                    .Select(d => new
+                    {
+                        d.DepartmentName,
+                        HighSalaryCount = d.Employees.Count(e => e.SalaryBase > 50000)
+                    })
+                    .ToList();
+                Console.WriteLine("\n32. Phòng ban và số nhân viên có lương trên 50.000:");
+                departmentHighSalaryCount.ForEach(d => Console.WriteLine($"- {d.DepartmentName}: {d.HighSalaryCount} nhân viên"));
+
+                // 33. Tìm nhân viên lớn tuổi nhất trong công ty
+                var oldestEmployee = employees
+                    .OrderBy(e => e.DateOfBirth)
+                    .FirstOrDefault();
+                Console.WriteLine("\n33. Nhân viên lớn tuổi nhất:");
+                if (oldestEmployee != null)
+                    Console.WriteLine($"- {oldestEmployee.FullName}, Ngày sinh: {oldestEmployee.DateOfBirth.ToShortDateString()}");
+
+                // 34. Phòng ban có số nhân viên thấp nhất và chi tiết
+                var departmentWithLeastEmployeess = departments
+                    .OrderBy(d => d.Employees.Count)
+                    .FirstOrDefault();
+                Console.WriteLine("\n34. Phòng ban có số nhân viên ít nhất:");
+                if (departmentWithLeastEmployeess != null)
+                {
+                    Console.WriteLine($"- {departmentWithLeastEmployeess.DepartmentName}, Số nhân viên: {departmentWithLeastEmployeess.Employees.Count}");
+                    departmentWithLeastEmployeess.Employees.ForEach(e => Console.WriteLine($"  + {e.FullName}"));
+                }
+
+                // 35. Liệt kê tất cả các hợp đồng chưa kết thúc
+                var ongoingContracts = contracts
+                    .Where(c => c.EndDate > DateTime.Now)
+                    .ToList();
+                Console.WriteLine("\n35. Hợp đồng chưa kết thúc:");
+                ongoingContracts.ForEach(c => Console.WriteLine($"- Hợp đồng ID: {c.ContractID}, Nhân viên ID: {c.EmployeeID}, Kết thúc: {c.EndDate}"));
+
+                // 36. Tính tổng số lượng hợp đồng theo từng phòng ban
+                var totalContractsByDepartment = departments
+                    .Select(d => new
+                    {
+                        d.DepartmentName,
+                        TotalContracts = d.Employees.Sum(e => e.Contracts.Count)
+                    })
+                    .ToList();
+                Console.WriteLine("\n36. Tổng số lượng hợp đồng theo từng phòng ban:");
+                totalContractsByDepartment.ForEach(d => Console.WriteLine($"- {d.DepartmentName}: {d.TotalContracts} hợp đồng"));
+
+                // 37. Liệt kê các nhân viên chưa từng ký hợp đồng
+                var employeesWithoutContracts = employees
+                    .Where(e => !e.Contracts.Any())
+                    .ToList();
+                Console.WriteLine("\n37. Nhân viên chưa từng ký hợp đồng:");
+                employeesWithoutContracts.ForEach(e => Console.WriteLine($"- {e.FullName}"));
+
+                // 38. Nhân viên có lương cao nhất trong công ty
+                var highestPaidEmployee = employees
+                    .OrderByDescending(e => e.SalaryBase)
+                    .FirstOrDefault();
+                Console.WriteLine("\n38. Nhân viên có lương cao nhất:");
+                if (highestPaidEmployee != null)
+                    Console.WriteLine($"- {highestPaidEmployee.FullName}, Lương: {highestPaidEmployee.SalaryBase}");
+
+                // 39. Liệt kê các phòng ban không có nhân viên đã từng được tăng lương
+                var departmentsWithoutSalaryIncreases = departments
+                    .Where(d => d.Employees.All(e => !e.EmployeeLogs.Any()))
+                    .ToList();
+                Console.WriteLine("\n39. Phòng ban không có nhân viên từng được tăng lương:");
+                departmentsWithoutSalaryIncreases.ForEach(d => Console.WriteLine($"- {d.DepartmentName}"));
+
+                // 40. Tìm các nhân viên đã làm việc ở nhiều vị trí khác nhau
+                var employeesWithMultiplePositions = employees
+                    .Where(e => e.EmployeeLogs.Select(log => log.Position.PositionID).Distinct().Count() > 1)
+                    .ToList();
+                Console.WriteLine("\n40. Nhân viên đã làm việc ở nhiều vị trí:");
+                employeesWithMultiplePositions.ForEach(e => Console.WriteLine($"- {e.FullName}"));
+
+                // 41. Liệt kê các nhân viên có hơn 1 hợp đồng đang hoạt động
+                var employeesWithMultipleActiveContracts = employees
+                    .Where(e => e.Contracts.Count(c => c.StartDate <= DateTime.Now && c.EndDate >= DateTime.Now) > 1)
+                    .ToList();
+                Console.WriteLine("\n41. Nhân viên có hơn 1 hợp đồng đang hoạt động:");
+                employeesWithMultipleActiveContracts.ForEach(e => Console.WriteLine($"- {e.FullName}"));
+
+                // 42. Liệt kê các nhân viên làm việc trong phòng ban không có phó phòng
+                var employeesInDeptsWithoutDeputies = employees
+                    .Where(e => departments.First(d => d.DepartmentID == e.DepartmentID).Deputies.Count == 0)
+                    .ToList();
+                Console.WriteLine("\n42. Nhân viên trong phòng ban không có phó phòng:");
+                employeesInDeptsWithoutDeputies.ForEach(e => Console.WriteLine($"- {e.FullName}"));
+
+                // 43. Liệt kê tất cả các nhân viên và số lần được thay đổi lương
+                var employeesWithSalaryChangeCount = employees
+                    .Select(e => new { e.FullName, SalaryChangeCount = e.EmployeeLogs.Count })
+                    .ToList();
+                Console.WriteLine("\n43. Nhân viên và số lần được thay đổi lương:");
+                employeesWithSalaryChangeCount.ForEach(e => Console.WriteLine($"- {e.FullName}: {e.SalaryChangeCount} lần"));
+              // 45. Nhóm nhân viên theo số lượng hợp đồng họ đã ký
+                var employeesGroupedByContractCount = employees
+                    .GroupBy(e => e.Contracts.Count)
+                    .Select(g => new { ContractCount = g.Key, Employees = g.ToList() })
+                    .ToList();
+                Console.WriteLine("\n45. Nhân viên nhóm theo số lượng hợp đồng:");
+                employeesGroupedByContractCount.ForEach(g =>
+                {
+                    Console.WriteLine($"- Số hợp đồng: {g.ContractCount}");
+                    g.Employees.ForEach(e => Console.WriteLine($"  + {e.FullName}"));
+                });
+
+                // 46. Liệt kê các phòng ban không có nhân viên nào dưới 30 tuổi
+                var departmentsNoYoungEmployees = departments
+                    .Where(d => d.Employees.All(e => (DateTime.Now.Year - e.DateOfBirth.Year) >= 30))
+                    .ToList();
+                Console.WriteLine("\n46. Phòng ban không có nhân viên dưới 30 tuổi:");
+                departmentsNoYoungEmployees.ForEach(d => Console.WriteLine($"- {d.DepartmentName}"));
+            // 47. Liệt kê nhân viên, phòng ban, và loại hợp đồng của hợp đồng gần nhất
+            var employeesWithContractDetails = from e in employees
+                                               join d in departments on e.DepartmentID equals d.DepartmentID
+                                               join c in contracts on e.EmployeeID equals c.EmployeeID
+                                               group c by e into employeeContracts
+                                               select new
+                                               {
+                                                   EmployeeName = employeeContracts.Key.FullName,
+                                                   DepartmentName = employeeContracts.Key.Department.DepartmentName,
+                                                   LatestContract = employeeContracts.OrderByDescending(c => c.StartDate).First(),
+                                                   ContractType = contractTypes.First(ct => ct.ContractTypeID == employeeContracts.OrderByDescending(c => c.StartDate).First().ContractTypeID).TypeName
+                                               };
+
+            Console.WriteLine("47. Nhân viên, phòng ban và loại hợp đồng gần nhất:");
+            employeesWithContractDetails.ToList().ForEach(e =>
+            {
+                Console.WriteLine($"Nhân viên: {e.EmployeeName}, Phòng ban: {e.DepartmentName}, Loại hợp đồng: {e.ContractType}, Ngày bắt đầu: {e.LatestContract.StartDate:d}");
+            });
+
+            // 48. Danh sách nhân viên có thay đổi vị trí và thông tin phòng ban liên quan
+            var employeesWithLogs = from e in employees
+                                    join l in employeeLogs on e.EmployeeID equals l.EmployeeID
+                                    join d in departments on l.Department.DepartmentID equals d.DepartmentID
+                                    select new
+                                    {
+                                        e.FullName,
+                                        OldDepartment = l.Department.DepartmentName,
+                                        NewPosition = l.Position.PositionName,
+                                        ChangeReason = l.Reason,
+                                        ChangeDate = l.ChangeDate
+                                    };
+
+            Console.WriteLine("48. Nhân viên có thay đổi vị trí và thông tin phòng ban:");
+            employeesWithLogs.ToList().ForEach(log =>
+            {
+                Console.WriteLine($"{log.FullName} chuyển sang vị trí {log.NewPosition} ở {log.OldDepartment} vào ngày {log.ChangeDate:d}, lý do: {log.ChangeReason}");
+            });
+
+            // 49. Phòng ban có nhân viên với hợp đồng dài nhất và trưởng phòng
+            var longestContractsByDept = from d in departments
+                                         join e in employees on d.DepartmentID equals e.DepartmentID
+                                         join c in contracts on e.EmployeeID equals c.EmployeeID
+                                         group new { Contract = c, Employee = e } by d into departmentContracts
+                                         select new
+                                         {
+                                             DepartmentName = departmentContracts.Key.DepartmentName,
+                                             LongestContractEmployee = departmentContracts
+                                                .Select(dc => new { dc.Employee, ContractDuration = (dc.Contract.EndDate - dc.Contract.StartDate).TotalDays })
+                                                .OrderByDescending(dc => dc.ContractDuration)
+                                                .FirstOrDefault()?.Employee.FullName,
+                                             Head = departmentContracts.Key.Head?.FullName
+                                         };
+
+            Console.WriteLine("49. Phòng ban có nhân viên với hợp đồng dài nhất và trưởng phòng:");
+            longestContractsByDept.ToList().ForEach(d =>
+            {
+                Console.WriteLine($"Phòng ban: {d.DepartmentName}, Trưởng phòng: {d.Head}, Nhân viên có hợp đồng dài nhất: {d.LongestContractEmployee}");
+            });
+
+
+            // 50. Danh sách nhân viên có hợp đồng và vị trí trong phòng ban 'IT'
+            var itEmployeesWithContracts = from e in employees
+                                           join d in departments on e.DepartmentID equals d.DepartmentID
+                                           join c in contracts on e.EmployeeID equals c.EmployeeID
+                                           where d.DepartmentName == "IT"
+                                           select new
+                                           {
+                                               EmployeeName = e.FullName,
+                                               Position = e.Position.PositionName,
+                                               ContractDuration = (c.EndDate - c.StartDate).TotalDays
+                                           };
+
+            Console.WriteLine("50. Nhân viên có hợp đồng và vị trí trong phòng ban 'IT':");
+            itEmployeesWithContracts.ToList().ForEach(e =>
+            {
+                Console.WriteLine($"Nhân viên: {e.EmployeeName}, Vị trí: {e.Position}, Thời gian hợp đồng: {e.ContractDuration} ngày");
+            });
+
+            // 51. Danh sách nhân viên đã từng thay đổi lương và hợp đồng
+            var employeesWithSalaryAndContracts = from e in employees
+                                                  join l in employeeLogs on e.EmployeeID equals l.EmployeeID
+                                                  join c in contracts on e.EmployeeID equals c.EmployeeID
+                                                  select new
+                                                  {
+                                                      e.FullName,
+                                                      NewSalary = l.NewSalary,
+                                                      ContractStartDate = c.StartDate,
+                                                      ContractEndDate = c.EndDate
+                                                  };
+
+            Console.WriteLine("51. Nhân viên đã từng thay đổi lương và hợp đồng:");
+            employeesWithSalaryAndContracts.ToList().ForEach(e =>
+            {
+                Console.WriteLine($"Nhân viên: {e.FullName}, Lương mới: {e.NewSalary}, Hợp đồng: {e.ContractStartDate:d} - {e.ContractEndDate:d}");
+            });
+
+            // 52. Tổng lương theo phòng ban có hợp đồng hiện tại còn hiệu lực
+            var totalSalaryByActiveContracts = from d in departments
+                                               join e in employees on d.DepartmentID equals e.DepartmentID
+                                               join c in contracts on e.EmployeeID equals c.EmployeeID
+                                               where c.StartDate <= DateTime.Now && c.EndDate >= DateTime.Now
+                                               group e by d into departmentEmployees
+                                               select new
+                                               {
+                                                   DepartmentName = departmentEmployees.Key.DepartmentName,
+                                                   TotalSalary = departmentEmployees.Sum(e => e.SalaryBase)
+                                               };
+
+            Console.WriteLine("52. Tổng lương theo phòng ban có hợp đồng hiện tại còn hiệu lực:");
+            totalSalaryByActiveContracts.ToList().ForEach(d =>
+            {
+                Console.WriteLine($"Phòng ban: {d.DepartmentName}, Tổng lương: {d.TotalSalary}");
+            });
+
+            // 53. Danh sách nhân viên, trưởng phòng, và phó phòng
+            var departmentRoles = from d in departments
+                                  join e in employees on d.DepartmentID equals e.DepartmentID
+                                  select new
+                                  {
+                                      DepartmentName = d.DepartmentName,
+                                      Head = d.Head?.FullName ?? "Chưa có trưởng phòng",
+                                      Deputies = d.Deputies.Select(dep => dep.FullName).ToList(),
+                                      Employees = e.FullName
+                                  };
+
+            Console.WriteLine("53. Nhân viên, trưởng phòng, và phó phòng:");
+            departmentRoles.ToList().ForEach(d =>
+            {
+                Console.WriteLine($"Phòng ban: {d.DepartmentName}, Trưởng phòng: {d.Head}, Phó phòng: {string.Join(", ", d.Deputies)}, Nhân viên: {d.Employees}");
+            });
+
+            // 54. Nhân viên có nhiều hợp đồng nhất trong phòng ban Finance
+            var mostContractsInFinance = from e in employees
+                                         join d in departments on e.DepartmentID equals d.DepartmentID
+                                         join c in contracts on e.EmployeeID equals c.EmployeeID
+                                         where d.DepartmentName == "Finance"
+                                         group c by e into employeeContracts
+                                         orderby employeeContracts.Count() descending
+                                         select new
+                                         {
+                                             EmployeeName = employeeContracts.Key.FullName,
+                                             ContractCount = employeeContracts.Count()
+                                         };
+
+            Console.WriteLine("54. Nhân viên có nhiều hợp đồng nhất trong phòng ban Finance:");
+            mostContractsInFinance.ToList().ForEach(e =>
+            {
+                Console.WriteLine($"Nhân viên: {e.EmployeeName}, Số hợp đồng: {e.ContractCount}");
+            });
+
+            // 55. Danh sách các phòng ban không có nhân viên dưới 30 tuổi và có hợp đồng dài hạn
+            var departmentsNoYoungLongContracts = from d in departments
+                                                  join e in employees on d.DepartmentID equals e.DepartmentID
+                                                  join c in contracts on e.EmployeeID equals c.EmployeeID
+                                                  where (DateTime.Now.Year - e.DateOfBirth.Year) >= 30
+                                                  && (c.EndDate - c.StartDate).TotalDays > 365
+                                                  select new
+                                                  {
+                                                      DepartmentName = d.DepartmentName,
+                                                      EmployeeName = e.FullName
+                                                  };
+
+            Console.WriteLine("55. Phòng ban không có nhân viên dưới 30 tuổi và có hợp đồng dài hạn:");
+            departmentsNoYoungLongContracts.ToList().ForEach(d =>
+            {
+                Console.WriteLine($"Phòng ban: {d.DepartmentName}, Nhân viên: {d.EmployeeName}");
+            });
+
+            // 56. Nhân viên và lịch sử hợp đồng có thay đổi phòng ban
+            var employeesWithContractChanges = from e in employees
+                                               join c in contracts on e.EmployeeID equals c.EmployeeID
+                                               join d in departments on e.DepartmentID equals d.DepartmentID
+                                               join l in employeeLogs on e.EmployeeID equals l.EmployeeID
+                                               where l.Department != null && l.Department.DepartmentID != d.DepartmentID
+                                               select new
+                                               {
+                                                   EmployeeName = e.FullName,
+                                                   OldDepartment = l.Department.DepartmentName,
+                                                   CurrentDepartment = d.DepartmentName,
+                                                   ContractStartDate = c.StartDate,
+                                                   ContractEndDate = c.EndDate
+                                               };
+
+            Console.WriteLine("56. Nhân viên và lịch sử hợp đồng có thay đổi phòng ban:");
+            employeesWithContractChanges.ToList().ForEach(e =>
+            {
+                Console.WriteLine($"Nhân viên: {e.EmployeeName}, Phòng ban cũ: {e.OldDepartment}, Phòng ban hiện tại: {e.CurrentDepartment}, Hợp đồng: {e.ContractStartDate:d} - {e.ContractEndDate:d}");
+            });
+
+
+
+        }
     }
 }
